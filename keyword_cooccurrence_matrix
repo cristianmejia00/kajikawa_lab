@@ -1,0 +1,96 @@
+# 20200502
+# cristianmejia00@gmail.com
+# Create a keyword cooccurrence matrix.
+# Assuming we have a selection of keywords or "master list"
+
+# Inputs:
+# - A bibliometric dataset from the Web of Science. (Or a clean text vector per each document)
+# - A list of keywords we want to analyse (The master keyword list)
+
+# Output:
+# - A keyword cooccurrence matrix with rows and columns of the same size of the keyword master list,
+# and the contents being the number of documents where a pair of keyword cooccur. 
+
+
+#######################################################################
+# Call libraries
+#######################################################################
+# Note: the first time you run this in your PC it might take a while.
+if(!"plyr"       %in% rownames(installed.packages())) {install.packages("plyr")}
+if(!"tm"         %in% rownames(installed.packages())) {install.packages("tm")}
+
+library(plyr)
+library(tm)
+
+
+#######################################################################
+# Read the data
+#######################################################################
+# To read a file from Web of Science (.txt) in your local machine in Windows use this, and select your file
+dataset <- fread(file.choose(), stringsAsFactors = FALSE)
+
+# Or use my sample (Remove the "#" symbol in the next line)
+#dataset <- fread('https://raw.githubusercontent.com/cristianmejia00/kajikawa_lab/master/test_data_WOS.csv', stringsAsFactors = FALSE, fill = TRUE)
+
+
+#######################################################################
+# Prepare the text
+#######################################################################
+# In this secuence:
+# -- Unify Title and Abstract
+# ---- Convert text to "tm" object
+# ------ To lowercase
+# ------ Remove stopwords
+# ------ Remove numbers and symbols
+# ------ Remove extra whitespaces
+# ---- Convert "tm" object to text
+
+documents <- paste(dataset$TI, dataset$AB, sep = ". ")
+text <- Corpus(VectorSource(documents)) %>%
+  tm_map(content_transformer(tolower)) %>% 
+  tm_map(removeWords, stopwords("english")) %>% 
+  tm_map(removeNumbers) %>% 
+  tm_map(removePunctuation) %>%
+  tm_map(stripWhitespace)
+text <- unlist(sapply(1:length(text), function(x){return(text[[x]]$content)}))
+
+
+#######################################################################
+# Select the master list of keywords
+#######################################################################
+# At this poinr is assumed that you computed a master keyword list. Then, use that.
+# Or add list manually:
+master_list <- c("business", "innovation", "digital", "ecosystem", "technology", "dataset")
+
+
+#######################################################################
+# Compute the keyword cooccurrence
+#######################################################################
+# Document frequency per keyword
+# For each keyword:
+# -- 1 if the keyword exists in the document (if the keyword is repeated in the document we only count 1)
+# -- 0 if the keyword does not exist in the document
+keyword_document_freq <- lapply(master_list, function(x){
+  as.numeric(grepl(x, text))
+})
+
+# Transform to Keyword X Document matrix
+keyword_matrix <- matrix(unlist(keyword_document_freq),
+                         ncol = length(myText),
+                         nrow = length(keyword_document_freq), 
+                         byrow = TRUE) 
+
+
+# Coocurence matrix
+# Note: The cross product of a "document x keyword matrix" is the "keyword cooccurrence matrix".
+keyword_coocurrance <- keyword_matrix %*% t(keyword_matrix)
+
+# Verify the matrix is squared. This should be true.
+ncol(keyword_coocurrance) == nrow(keyword_coocurrance)
+
+# Add the column and row names
+rownames(keyword_coocurrance) <- master_list
+colnames(keyword_coocurrance) <- master_list
+
+# write the matrix (Optional because it can be very large)
+write.csv(keyword_coocurrance, file = "keyword_cooccurrence.csv")
