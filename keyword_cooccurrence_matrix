@@ -58,8 +58,8 @@ text <- unlist(sapply(1:length(text), function(x){return(text[[x]]$content)}))
 #######################################################################
 # Select the master list of keywords
 #######################################################################
-# At this poinr is assumed that you computed a master keyword list. Then, use that.
-# Or add list manually:
+# At this point is assumed that you computed a master keyword list. Then, use that.
+# Or create the list manually:
 master_list <- c("business", "innovation", "digital", "ecosystem", "technology", "dataset")
 
 
