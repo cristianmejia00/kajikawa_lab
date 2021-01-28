@@ -10,9 +10,9 @@
 # between the keywords of every pair of clusters. Usually, the cosine similarity is used to obtain the heatmap.
 
 # Fukan System currently does not offer an option to save the similarity matrix. Thus, this code
-# was created to compute an alternative similarity matrix also based con cosine similarity.
+# was created to compute an alternative similarity matrix also based on cosine similarity.
 
-# The exact numbers of this code's matrix and the heatmap in Fukan System will not be exactly the same. But the 
+# The numbers of this code's matrix and the heatmap in Fukan System will not be exactly the same. But the 
 # Heatmap pattern will remain the same. 
 
 ##########################################################################
@@ -27,7 +27,6 @@
 ###########################################################################
 # Preparation
 ###########################################################################
-# Load libraries
 # Note: the first time you run this in your PC it might take a while.
 # Install the necessary libraries if not yet in the system.
 if(!"dplyr"        %in% rownames(installed.packages())) {install.packages("dplyr")}
