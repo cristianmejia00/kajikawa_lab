@@ -10,9 +10,9 @@
 # between the keywords of every pair of clusters. Usually, the cosine similarity is used to obtain the heatmap.
 
 # Fukan System currently does not offer an option to save the similarity matrix. Thus, this code
-# was created to compute an alternative similarity matrix also based on cosine similarity.
+# was created to compute an alternative similarity matrix also based con cosine similarity.
 
-# The numbers of this code's matrix and the heatmap in Fukan System will not be exactly the same. But the 
+# The exact numbers of this code's matrix and the heatmap in Fukan System will not be exactly the same. But the 
 # Heatmap pattern will remain the same. 
 
 ##########################################################################
@@ -27,16 +27,20 @@
 ###########################################################################
 # Preparation
 ###########################################################################
+# Load libraries
 # Note: the first time you run this in your PC it might take a while.
 # Install the necessary libraries if not yet in the system.
 if(!"dplyr"        %in% rownames(installed.packages())) {install.packages("dplyr")}
+if(!"data.table"   %in% rownames(installed.packages())) {install.packages("data.table")}
 if(!"tm"           %in% rownames(installed.packages())) {install.packages("tm")}
 if(!"slam"         %in% rownames(installed.packages())) {install.packages("slam")}
 
 # Load libraries
 library(dplyr)
+library(data.table)
 library(tm)
 library(slam)
+
 
 # Open the analysis folder for the X axis. The unzipped folder.
 paths_to_files_x = list.files(path = choose.dir(), full.names= TRUE, pattern = "*keyword.[[:digit:]]*.tsv", recursive = TRUE)
@@ -63,11 +67,11 @@ extract_numeric_order <- function(a_list_of_paths) {
 # Read files and format them properly
 read_keyword_files <- function(a_list_of_paths) {
   df <- lapply(a_list_of_paths, function(x) {
-    tmp <- read.table(x, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+    tmp <- fread(x, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
     tmp <- tmp[tmp$CC > 1,]
     tmp <- tmp[,c(1,2)]
     colnames(tmp) <- c("keywords", "tfidf_score")
-    return(tmp)
+    return(as.data.frame(tmp))
   })
   return(df)
 }
@@ -76,7 +80,7 @@ read_keyword_files <- function(a_list_of_paths) {
 get_dtm_dataframes <- function (x) {
   lapply(x, function(x) {
     tmp <- x[!is.na(x[,1]),]
-    tmp <- tmp[nchar(as.character(tmp[,1])) > 0,]
+    tmp <- tmp[nchar(as.character(enc2utf8(tmp[,1]))) > 0,]
     tmp <- tmp[c(1:min(500, nrow(tmp))),]
     normalized <- normalize_vector(tmp[,2])
     framed <- data.frame(t(matrix(normalized)))
