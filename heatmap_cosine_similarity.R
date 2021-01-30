@@ -69,7 +69,8 @@ read_keyword_files <- function(a_list_of_paths) {
   df <- lapply(a_list_of_paths, function(x) {
     tmp <- fread(x, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
     tmp <- tmp[tmp$CC > 1,]
-    tmp <- tmp[,c(1,2)]
+    tmp <- tmp[,c(1,3)]
+    tmp <- tmp[order(tmp[,2], decreasing = TRUE),]
     colnames(tmp) <- c("keywords", "tfidf_score")
     return(as.data.frame(tmp))
   })
@@ -81,7 +82,7 @@ get_dtm_dataframes <- function (x) {
   lapply(x, function(x) {
     tmp <- x[!is.na(x[,1]),]
     tmp <- tmp[nchar(as.character(enc2utf8(tmp[,1]))) > 0,]
-    tmp <- tmp[c(1:min(500, nrow(tmp))),]
+    tmp <- tmp[c(1:min(1000, nrow(tmp))),]
     normalized <- normalize_vector(tmp[,2])
     framed <- data.frame(t(matrix(normalized)))
     colnames(framed) <- tmp[,1]
@@ -117,7 +118,7 @@ for (i in c(1:ncol(complete_dtm))) {
 
 # Cosine similarity
 tdm <- as.TermDocumentMatrix(t(as.matrix(complete_dtm)), weighting = weightTf)
-xross <- crossprod_simple_triplet_matrix(tdm)
+xross <- crossprod_simple_triplet_matrix(tdm)/(sqrt(col_sums(tdm^2) %*% t(col_sums(tdm^2))))
 heatmap <- xross[1:length(y_axis), (1 + length(y_axis)):ncol(xross)]
 
 # Write the heatmap
