@@ -118,7 +118,7 @@ for (i in c(1:ncol(complete_dtm))) {
 
 # Cosine similarity
 tdm <- as.TermDocumentMatrix(t(as.matrix(complete_dtm)), weighting = weightTf)
-xross <- crossprod_simple_triplet_matrix(tdm)/(sqrt(col_sums(tdm^2) %*% t(col_sums(tdm^2))))
+xross <- crossprod_simple_triplet_matrix(tdm)/(sqrt(col_sums(tdm^2)) %*% t(sqrt(col_sums(tdm^2))))
 heatmap <- xross[1:length(y_axis), (1 + length(y_axis)):ncol(xross)]
 
 # Write the heatmap
