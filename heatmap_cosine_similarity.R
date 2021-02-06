@@ -127,3 +127,41 @@ write.csv(heatmap, file = "heatmap.csv", row.names = FALSE)
 # DONE.
 # Your file is here:
 getwd()
+
+###########################################################################
+# OPTIONAL: Get shared keywords between clusters
+###########################################################################
+# The similarity matrix is transformed to a list, ordered from the highest similarity score, 
+# and shared keywords are added for comparisson to each pair of clusters.
+
+# Auxiliary function.
+# similarity_matrix an unnamed similarity matrix (usually created with \code{\link{heatmap_matrix}})
+# x_axis_lodf a list of data frames. The first column is for the terms, the second for the value(relevance)
+# y_axis_lodf a list of data frames. The first column is for the terms, the second for the value(relevance)
+heatmap_list <- function(similarity_matrix, x_axis_lodf, y_axis_lodf) {
+  
+  #transform to edges
+  edges <- melt(similarity_matrix) 
+  edges <- edges[order(-edges[,3]),]
+  edges <- edges[edges[,3] > 0,]
+  
+  #Set names. As is requiered by other functions ahead
+  setnames(edges, 1, "Y")
+  setnames(edges, 2, "X")
+  
+  return(edges)
+}
+
+# Format the heatmap as a list, from the most similar pair on the top
+heatmap_edges <- heatmap_list(heatmap, x_axis, y_axis)
+
+# Get the intersecting keywords per each pair of clusters
+heatmap_edges$intersect_keywords <- sapply(c(1:nrow(heatmap_edges)), function(x){
+  x_cluster <- heatmap_edges$X[[x]]
+  y_cluster <- heatmap_edges$Y[[x]]
+  intersect_kwds <- intersect(x_axis[[x_cluster]][c(1:1000),1], y_axis[[y_cluster]][c(1:1000),1])
+  return(paste(intersect_kwds, collapse = "; "))
+})
+
+# Write the report file
+write.csv(heatmap_edges, file = "shared_keywords_between_clusters.csv", row.names = FALSE)
