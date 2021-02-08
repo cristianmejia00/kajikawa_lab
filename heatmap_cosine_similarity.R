@@ -136,24 +136,29 @@ getwd()
 
 # Auxiliary function.
 # similarity_matrix an unnamed similarity matrix (usually created with \code{\link{heatmap_matrix}})
-# x_axis_lodf a list of data frames. The first column is for the terms, the second for the value(relevance)
-# y_axis_lodf a list of data frames. The first column is for the terms, the second for the value(relevance)
-heatmap_list <- function(similarity_matrix, x_axis_lodf, y_axis_lodf) {
-  
+heatmap_list <- function(similarity_matrix) {
   #transform to edges
-  edges <- melt(similarity_matrix) 
+  edges <- as.data.table(heatmap)
+  colnames(edges) <- as.character(c(1:ncol(edges)))
+  edges$Y  <- as.character(c(1:nrow(edges)))
+  edges <- melt(edges, id.vars = "Y", 
+                measure.vars = c(1:(ncol(edges)-1)), 
+                variable.name = "X", 
+                variable.factor = FALSE,
+                value.name = "similarity",
+                value.factor = FALSE,
+                verbose = FALSE)
+  edges$Y <- as.numeric(edges$Y)
+  edges$X <- as.numeric(edges$X)
+  edges <- as.data.frame(edges)
   edges <- edges[order(-edges[,3]),]
   edges <- edges[edges[,3] > 0,]
-  
-  #Set names. As is requiered by other functions ahead
-  setnames(edges, 1, "Y")
-  setnames(edges, 2, "X")
-  
   return(edges)
 }
 
 # Format the heatmap as a list, from the most similar pair on the top
-heatmap_edges <- heatmap_list(heatmap, x_axis, y_axis)
+heatmap_edges <- heatmap_list(heatmap)
+
 
 # Get the intersecting keywords per each pair of clusters
 heatmap_edges$intersect_keywords <- sapply(c(1:nrow(heatmap_edges)), function(x){
